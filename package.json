@@ -1,0 +1,27 @@
+{
+  "name": "aeternam-x.github.io-main",
+  "version": "1.0.0",
+  "description": "Seu site Jekyll otimizado para performance.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build:jekyll": "bundle exec jekyll build",
+    "optimize:css": "node optimize-css.js",
+    "minify:html": "node minify.js",
+    "build": "npm run build:jekyll && npm run optimize:css && npm run minify:html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "AETERNAM-X",
+  "license": "ISC",
+  "dependencies": {
+    "cssnano": "^7.0.7",
+    "htmlnano": "^2.1.2",
+    "lightningcss": "^1.30.1",
+    "postcss": "^8.5.4",
+    "svgo": "^3.3.2",
+    "terser": "^5.41.0"
+  }
+}
