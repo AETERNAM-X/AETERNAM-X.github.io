@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Proxy Codex</title>
+    <description></description>
+    <link>/</link>
+    <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Sat, 07 Jun 2025 23:16:02 -0300</pubDate>
+    <lastBuildDate>Sat, 07 Jun 2025 23:16:02 -0300</lastBuildDate>
+    <generator>Jekyll v3.10.0</generator>
+    
+      <item>
+        <title>Windows WWW</title>
+        <description>&lt;p&gt;&lt;em&gt;On TypeScript, ESlint, jest, TSDoc, Travis-CI, and VSCode (with inspirations from the Zen of Python)&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;It is fun to write fast without constraints, and run code in a flash. That is why I fell in love with Python and the Jupyter Notebook environment, a great tool for prototyping and interacting with data. However, interactive notebooks fall short when you want to write bigger, maintainable code. See the &lt;a href=&quot;http://web.eecs.utk.edu/~azh/blog/notebookpainpoints.html&quot;&gt;What’s wrong with computational notebooks?&lt;/a&gt; survey:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/notebooks-chart.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Restructuring and cleaning up code (refactoring) is being listed as one task notebooks are not meant for. For further reading on the pros and cons of notebooks, see &lt;a href=&quot;https://yihui.org/en/2018/09/notebook-war/&quot;&gt;The First Notebook War&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;While I knew the concept of tests, I got discouraged by some overzealous test-driven development practices which make feature development slow and experimentation — even slower. In data science, you pretty much need to take an iterative approach to data. Creating meticulous tests before exploring the data is a big mistake, and will result in a well-crafted garbage-in, garbage-out pipeline. We need an environment flexible enough to encourage experiments, especially in the initial place.&lt;/p&gt;
+
+&lt;p&gt;Moreover: writing clever code is tempting! Why should you deny yourself the fun of solving a seemingly difficult problem in a one-liner? Well, there is a word of caution, and it’s called &lt;a href=&quot;https://github.com/dwmkerr/hacker-laws#kernighans-law&quot;&gt;the Kernighan’s Law&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In other words: being smart won’t make you automatically a good software engineer. The combination of high intelligence and no software engineering skills often results in code-golf-style contraptions that do the job but are completely incomprehensible for anyone else (including their authors’ future selves). This may explain the baseline &lt;a href=&quot;https://academia.stackexchange.com/questions/23237/why-are-papers-without-code-but-with-results-accepted/23238#23238&quot;&gt;code quality in academia&lt;/a&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Last autumn, I got invited to the Centre for Quantum Technologies at the National University of Singapore to lead the creation of &lt;a href=&quot;https://github.com/Quantum-Game/&quot;&gt;Quantum Game with Photons 2&lt;/a&gt;. It is a bigger project, with a few people on board (with various skillsets), so things that would work for solo coding won’t fly there. And I learned a lot, by trial and error.&lt;/p&gt;
+
+&lt;p&gt;I got quite a few insights from things most software engineers take for granted: &lt;strong&gt;types&lt;/strong&gt; and &lt;strong&gt;tests&lt;/strong&gt;. If you are a fellow (ex-)scientist, have ADHD (I do) or for any other reason find yourself too impatient, or smart, to set types and write tests: this post is for you!&lt;/p&gt;
+
+&lt;p&gt;In this post I will discuss:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;TypeScript as an improvement over JavaScript&lt;/li&gt;
+  &lt;li&gt;Code documentation with TSDocs&lt;/li&gt;
+  &lt;li&gt;ESLint as a “spell checker” and automatic style guide for code&lt;/li&gt;
+  &lt;li&gt;Tests (with jest framework)&lt;/li&gt;
+  &lt;li&gt;Continuous integration with Travis CI and Codecov&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;typescript&quot;&gt;TypeScript&lt;/h1&gt;
+
+&lt;p&gt;Since it is a browser-based game, JavaScript was an obvious choice. We chose &lt;a href=&quot;https://www.typescriptlang.org/&quot;&gt;TypeScript&lt;/a&gt; (&lt;em&gt;“JavaScript with types”&lt;/em&gt;) as its dialect, and never looked back. We all used &lt;a href=&quot;https://code.visualstudio.com/&quot;&gt;VSCode&lt;/a&gt; open-source editor, due to its TypeScript support and rich plugin ecosystem&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://twitter.com/pmigdal/status/1179329959598313473&quot;&gt;&lt;img src=&quot;/imgs/2025/article-test/pmigdal-tweet-typescript.png&quot; alt=&quot;&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;In principle, types are not necessary. All in all, everything in the computer is a long sequence of zeros and ones. But almost always we want to &lt;strong&gt;restrict&lt;/strong&gt; what we can do with a particular variable to things that make sense, in the given context. There are exotic cases when we want to treat 0s and 1s of a &lt;strong&gt;float&lt;/strong&gt; using operations for an &lt;strong&gt;integer&lt;/strong&gt;, vide &lt;a href=&quot;https://en.wikipedia.org/wiki/Fast_inverse_square_root&quot;&gt;fast inverse square root&lt;/a&gt;. But there are rare exceptions that do deserve a few extra lines of switching between types.&lt;/p&gt;
+
+&lt;p&gt;In Python, when trying to do a dubious operation, you get an error pretty soon. In JavaScript… an undefined can fly through a few layers of abstraction, causing an error in a seemingly unrelated piece of code. We can get funny results due to using different types. Open a console, write:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;function add(a, b) { return +(a + b) }&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;And then try to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;add(2,2)&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;add(&apos;2&apos;, 2)&lt;/code&gt;. In both cases, you get a number… but, is it the same one? Sure, this case is trivial. But what if this function were much more complicated, had a few arguments (in non-obvious order), and its input arguments came from different functions (from modules or packages you don’t maintain)?&lt;/p&gt;
+
+&lt;p&gt;Even in Python, the error happens in the runtime. Why not see it coming while writing code? In TypeScript, with a few keystrokes, we can set:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/typescript_add.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I found that the overhead to use types in TypeScript is minimal (if any). When writing a new class, method or function, very often it is faster. Sure, I need to specify types of input and output. But then I get speedup due to autocompletion, hints, and linting if for any reason I make a mistake.&lt;/p&gt;
+
+&lt;p&gt;Types give built-in testing — that a given function takes arguments of particular types. However, they also help greatly with the code readability. When seeing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;changeVolume(volume: number)&lt;/code&gt; you don’t need to guess if &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;volume&lt;/code&gt; is a number, string, boolean, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Volume&lt;/code&gt; object, or Cthulhu-knows-what.&lt;/p&gt;
+
+&lt;p&gt;So, let’s start with a few lines of &lt;a href=&quot;https://www.python.org/dev/peps/pep-0020/&quot;&gt;Zen of Python&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Explicit is better than implicit.&lt;/p&gt;
+
+  &lt;p&gt;In the face of ambiguity, refuse the temptation to guess.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;To be fair: there is quite a lot missing in TypeScript types. For example, integer types would help a lot in typical tasks such as accessing an array or iterating a loop; even if they are stored as floats, I want to make sure someone won’t take the 2.5-th element of a list.&lt;/p&gt;
+
+&lt;p&gt;Still, for me, TS is a day and night difference with JavaScript.&lt;/p&gt;
+
+&lt;h3 id=&quot;further-reading&quot;&gt;Further reading&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://blog.logrocket.com/is-typescript-worth-it/&quot;&gt;Is TypeScript worth it? - LogRocket Blog&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;tsdoc&quot;&gt;TSDoc&lt;/h1&gt;
+
+&lt;p&gt;Good comments do clarify code. &lt;a href=&quot;https://github.com/microsoft/tsdoc&quot;&gt;TSDoc&lt;/a&gt; is a way of writing TypeScript comments where they’re linked to a particular function, class or method (like&lt;a href=&quot;https://www.python.org/dev/peps/pep-0257/&quot;&gt; Python docstrings&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/tsdoc1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/tsdoc2.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If we are clueless about what to write in the description, it may be a sign of a more fundamental problem:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If the implementation is hard to explain, it’s a bad idea.&lt;/p&gt;
+
+  &lt;p&gt;If the implementation is easy to explain, it may be a good idea.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Additionally, it is possible to create the whole documentations with &lt;a href=&quot;https://github.com/TypeStrong/typedoc&quot;&gt;TypeDoc&lt;/a&gt;, see &lt;a href=&quot;https://quantum-game.github.io/quantum-tensors/classes/_operator_.operator.html&quot;&gt;Operator for Quantum Tensors&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;further-reading-1&quot;&gt;Further reading&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://coryrylan.com/blog/intro-to-typescript-documentation-with-tsdoc&quot;&gt;Intro to TypeScript Documentation with TSDoc&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;eslint&quot;&gt;ESLint&lt;/h1&gt;
+
+&lt;p&gt;Since the code runs, it is fine, right?&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/letz.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Well, unless someone needs to read it. A collaborator, or yourself in 6 months. When the other person needs to develop it (use, expand, or rewrite) — there are so many things that can go wrong, be misunderstood, or take an unproportionate amount of time. When it comes to code, I have a strong belief that:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Readability counts.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://eslint&quot;&gt;ESLint&lt;/a&gt; does automatic code linting — it’s “spell checking” for code and serves a few purposes:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;marking things that are incorrect,&lt;/li&gt;
+  &lt;li&gt;marking things that are unnecessary or risky (e.g. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;if (x = 5) { ... }&lt;/code&gt;)&lt;/li&gt;
+  &lt;li&gt;setting a standard way of writing code.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The first two are a no-brainer. It may be debatable what is “risky”, but we can customize that if needed.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://oppressive-silence.com/comic/oh-no-the-robot&quot;&gt;&lt;img src=&quot;/imgs/2025/article-test/opressive-silence-if-assignment.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Source: &lt;a href=&quot;http://oppressive-silence.com/comic/oh-no-the-robots&quot;&gt;oppressive-silence.com/comic/oh-no-the-robots&lt;/a&gt;. Using &lt;a href=&quot;https://eslint.org/docs/rules/no-cond-assign&quot;&gt;no-cond-assign&lt;/a&gt; would have saved their lives.&lt;/p&gt;
+
+&lt;p&gt;The standardization is less obvious. Personally, I like setting the linter to be as strict as possible, going in line with a controversial piece of wisdom from the Zen of Python:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;There should be one — and preferably only one — obvious way to do it.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;By reducing ways to write something, it reduces the number of unnecessary choices (&lt;em&gt;should I indent it or not?&lt;/em&gt;) and allows me to use my cognitive resources in a more meaningful way.&lt;/p&gt;
+
+&lt;p&gt;Moreover, it makes it much easier to collaborate. No more inconsistencies because one uses &lt;strong&gt;tabs&lt;/strong&gt; and the other — &lt;strong&gt;spaces&lt;/strong&gt;. Or different name conventions. Even if you verbally decide to use &lt;strong&gt;two spaces&lt;/strong&gt;, it takes some cognitive power to self-police oneself… with no guarantee.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://eslint.org/&quot;&gt;ESLint&lt;/a&gt; can be configured in various ways, to be laid back or strictly pedantic. There are many plugins with settings for particular languages and frameworks (such as TypeScript, Vue, etc) and styles (I recommend &lt;a href=&quot;https://github.com/airbnb/javascript/&quot;&gt;Airbnb style JavaScript style guide&lt;/a&gt; and &lt;a href=&quot;https://www.npmjs.com/package/eslint-config-airbnb-typescript&quot;&gt;Airbnb TypeScript&lt;/a&gt;).&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Beautiful is better than ugly.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Many plugins go with two possible settings: base (only errors) and recommended (enforcing good practices with style). I suggest going by default for the latter. If you need to override an option, it is easy. And IMHO it does not matter nearly as much what style you choose (if you want, go for tabs for indentation — you have my official blessing) as long as it is restrictive and enforced ruthlessly.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/prettier.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I do have a love and hate relationship with &lt;a href=&quot;https://prettier.io/&quot;&gt;Prettier&lt;/a&gt;, another a code formatter purely focused on style. In some cases, it makes code, well, prettier and more standardized. However, for many things (say: indentations, trailing characters) Airbnb can do the job. I have also found that a restrictive approach to line width can occasionally produce an inconsistent style (and is pretty vocal about that).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/prettier_bad.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;further-reading-2&quot;&gt;Further reading&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/typescript-eslint/typescript-eslint/blob/master/docs/getting-started/linting/README.md&quot;&gt;typescript-eslint/typescript-eslint&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://blog.echobind.com/integrating-prettier-eslint-airbnb-style-guide-in-vscode-47f07b5d7d6a&quot;&gt;Integrating Prettier + ESLint + Airbnb Style Guide in VSCode&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://itnext.io/keep-code-consistent-across-developers-the-easy-way-with-prettier-eslint-60bb7e91b76c&quot;&gt;Keep Code Consistent Across Developers The Easy Way — With Prettier &amp;amp; ESLint&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;jest&quot;&gt;jest&lt;/h1&gt;
+
+&lt;p&gt;Testing seemed the way to slow down development, kill fun and momentum.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Errors should never pass silently.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;I won’t fool you: tests require you to write a few more lines of code (see &lt;a href=&quot;https://jestjs.io/&quot;&gt;jest&lt;/a&gt; examples). But ask yourself: when writing a longer function, does it work on the first go? Always, no exceptions?&lt;/p&gt;
+
+&lt;p&gt;Probably you have the same doubt, and at least test it somehow: open an app and eyeball it if it works, or open a console and check if you get a correct result (this REPL / Jupyter Notebook approach for testing).&lt;/p&gt;
+
+&lt;p&gt;This interactive approach is fine… but manual. You need to do it each time you change your function. So, how about testing it once and then saving it for further use?&lt;/p&gt;
+
+&lt;p&gt;Well, with &lt;a href=&quot;https://github.com/jest-community/vscode-jest&quot;&gt;VSCode plugin for jest&lt;/a&gt; you can do that! Write a new test and the result. If you want to make it REPL-like, instead of writing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;console.log(x.toString())&lt;/code&gt; use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;expect(x.toString()).toBe(&apos;&apos;)&lt;/code&gt; and you will directly get the result.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/jest_test_repl.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Then, we can set it as a test. We wrote once but turned into a guardian of our code.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/jest_test.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Tests do not prove that the code works. They safeguard against mistakes, and usually stupid mistakes (e.g. instead of a sorted list in ascending order you get one in descending).&lt;/p&gt;
+
+&lt;p&gt;It is fine to start adding tests gradually, by adding a few tests to things that are the most difficult (ones you need to keep fingers crossed so they work) or most critical (simple but with many other dependent components).&lt;/p&gt;
+
+&lt;p&gt;But, if you want to gamify adding tests, there is a way to go!&lt;/p&gt;
+
+&lt;h3 id=&quot;further-reading-3&quot;&gt;Further reading&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://dev.to/muhajirdev/unit-testing-with-typescript-and-jest-2gln&quot;&gt;Unit Testing with Typescript and Jest&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;travis-ci&quot;&gt;Travis CI&lt;/h1&gt;
+
+&lt;p&gt;A typical issue with academic code is that it runs on a single computer, during a full moon. So how about testing it externally, with every single commit?&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/travis_ci_checks_pull_request.png&quot; alt=&quot;[https://travis-ci.com/Quantum-Game/quantum-tensors](https://travis-ci.com/Quantum-Game/quantum-tensors)&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Continuous integration makes it easy to check against cases when the code:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;does not work (but someone didn’t test it and pushed haphazardly),&lt;/li&gt;
+  &lt;li&gt;does work only locally, as it is based on local installations,&lt;/li&gt;
+  &lt;li&gt;does work only locally, as not all files were committed.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Sounds too good to be easy? Well — to my surprise, I set it with a few clicks at &lt;a href=&quot;https://travis-ci.com/Quantum-Game/quantum-tensors&quot;&gt;Travis CI&lt;/a&gt;, and by creating a &lt;a href=&quot;https://github.com/Quantum-Game/quantum-tensors/blob/master/.travis.yml&quot;&gt;.travis.yml&lt;/a&gt; file in the repo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-{yaml}&quot;&gt;language: node_js
+node_js: node
+
+before_script:
+  - npm install -g typescript
+  - npm install codecov -g
+
+script:
+  - yarn lint
+  - yarn build
+  - yarn test
+  - yarn build-docs
+
+after_success:
+  - codecov
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Conversely, if the code works passes, but does not work locally, there is a fair chance that the problem is with local installation (e.g. conflicting paths) rather than the code itself.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;And the gamification part! Writing tests for all functions is boring… unless I get some score for that, as visible feedback. With &lt;a href=&quot;https://codecov.io/gh/Quantum-Game/quantum-tensors/&quot;&gt;Codecov&lt;/a&gt; it is easy to make jest &amp;amp; Travis CI generate one more thing:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/codecov.png&quot; alt=&quot;[https://codecov.io/gh/Quantum-Game/quantum-tensors/](https://codecov.io/gh/Quantum-Game/quantum-tensors/)&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;further-reading-4&quot;&gt;Further reading:&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.eficode.com/blog/github-actions&quot;&gt;A first impression of GitHub Actions CI/CD&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://bravelab.io/blog/migrating-from-travisci-to-github-actions-1/&quot;&gt;Migrating from TravisCI to Github Actions&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;ending-notes&quot;&gt;Ending notes&lt;/h1&gt;
+
+&lt;p&gt;Sure, all of it is fun. But: did it help me? For example: believe me or not, but I refactored a piece of tensors numerics in one go, with no errors:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/article-test/typescript_quantum_tensors_refactoring.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Thanks to types, and TSDocs, it was possible to see slips while writing.
+Thanks to tests, once rewritten, I was reassured it does the same thing.&lt;/p&gt;
+
+&lt;p&gt;I don’t believe I would manage to do the same things without types and tests.&lt;/p&gt;
+
+&lt;h4 id=&quot;takeaways&quot;&gt;Takeaways&lt;/h4&gt;
+
+&lt;p&gt;A few takeaways:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Types and tests save you from stupid mistakes, and are gifts for your future self!&lt;/li&gt;
+  &lt;li&gt;Use ESLint and configure it to be your strict, but fair, friend.&lt;/li&gt;
+  &lt;li&gt;Think of tests as a permanent console.&lt;/li&gt;
+  &lt;li&gt;Types: It is not only about checks. It is also about code readability.&lt;/li&gt;
+  &lt;li&gt;Testing with each commit makes fewer surprises when merging Pull Requests.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Does it slow down development?&lt;/p&gt;
+
+&lt;p&gt;Well, my rule-of-thumb is: &lt;strong&gt;&lt;em&gt;would I use it during a hackathon?&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;In fact, I learned TypeScript during a hackathon! For other parts: I would use ESLint in full strength, tests for some (especially end-to-end, to make sure a commit does not make project crash), and add continuous integration.&lt;/p&gt;
+
+&lt;h4 id=&quot;thanks&quot;&gt;Thanks&lt;/h4&gt;
+
+&lt;p&gt;I hope you’ve learned something — tools, or an overall approach that can be applied to any language. I would like to thank Rafał Jakubanis, Anna Karpiuk, Philippe Cochin, Marek Cichy and Klem Jankiewicz for valuable remarks on the draft.&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 07 Jun 2025 00:00:00 -0300</pubDate>
+        <link>/2025/06/07/article-test/</link>
+        <guid isPermaLink="true">/2025/06/07/article-test/</guid>
+        
+        <category>tweaking</category>
+        
+        <category>latency</category>
+        
+        <category>windows</category>
+        
+        <category>boost</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Exploring human vs machine learning (one blogpost at a time)</title>
+        <description>&lt;p&gt;The field of Artificial Intelligence started with inspiration, and ambition, to imitate our human cognition. We create things in our image and, well, they make similar mistakes:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;The biggest lie of every parent, pet owner and deep learning engineer:&lt;br /&gt;
+“I’ve never shown it that, it must have learned it by itself!”&lt;br /&gt;
+ — a friend, Jan Rzymkowski, on FB; translation mine&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;While each particular machine learning algorithm comes with its own artifacts and limitations, some issues are much broader. In fact, there are limitations of any learning process, machine or human alike.
+I think that it’s worth investigating these, as there is a lot of room for cross-pollination between machine learning and cognitive science.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Speaking as a psychologist, I’m flabbergasted by claims that the decisions of algorithms are opaque while the decisions of people are transparent. I’ve spent half my life at it and I still have limited success understanding human decisions. - &lt;a href=&quot;https://twitter.com/JFBonnefon/status/1131889460927500288&quot;&gt;Jean-François Bonnefon’s tweet&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In this blog post, I will explain why I consider it an important, and fruitful, problem. My main point is to share my motivation for my other blog posts (existing and planned) exploring concrete aspects of human vs machine cognition.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/human-machine-learning/artifact_data_science_martaczc.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;a href=&quot;https://www.deviantart.com/martaczc/art/Artifact-in-game-vs-in-data-scientist-life-609525369&quot;&gt;Artifact in game vs in (data scientist)&lt;/a&gt; life by MartaCzC (posted with permission)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;motivation&quot;&gt;Motivation&lt;/h2&gt;
+
+&lt;p&gt;We can explore learning patterns, &lt;a href=&quot;https://en.wikipedia.org/wiki/List_of_cognitive_biases&quot;&gt;cognitive biases&lt;/a&gt;, and &lt;a href=&quot;https://en.wikipedia.org/wiki/List_of_fallacies&quot;&gt;logical fallacies&lt;/a&gt; through the prism of machine learning.
+Moreover, biological systems keep inspiring progress of ML (evolutionary algorithm, artificial neural networks, attention). Or sometimes it turns out that deviating from biological inspirations does better (e.g. ReLU instead of sigmoid activations in deep learning).&lt;/p&gt;
+
+&lt;p&gt;Some of these issues are theoretical, good for neuroscientists and machine learning researchers. Others are crucial also for any practitioner — to make sure that we reduce (rather than amplify) social biases, improve safety, etc.&lt;/p&gt;
+
+&lt;p&gt;Except for scientific &amp;amp; philosophical curiosity, and ethical &amp;amp; safety concerns, I have also a more down-to-earth  motivation — I make my living teaching machine learning.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/human-machine-learning/teach_people_to_teach_machines.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;“I teach people to teach machines” — &lt;a href=&quot;https://www.linkedin.com/feed/update/urn:li:activity:6503583595418914816&quot;&gt;my LinkedIn post&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;It’s handy to have useful analogies and metaphors, showing that machine learning is “reasoning on steroids”, rather than some kind of sorcery.&lt;/p&gt;
+
+&lt;h2 id=&quot;machine-learning&quot;&gt;Machine learning&lt;/h2&gt;
+
+&lt;p&gt;If you need a general introduction, I wrote &lt;a href=&quot;https://p.migdal.pl/2016/03/15/data-science-intro-for-math-phys-background.html&quot;&gt;Data science intro for math/phys background&lt;/a&gt; in 2016. To my surprise, it is still up-to-date and useful to people coming from other backgrounds as well.&lt;/p&gt;
+
+&lt;h3 id=&quot;each-computer-model-is-different&quot;&gt;Each computer model is different&lt;/h3&gt;
+
+&lt;p&gt;Contrary to public reception,  “AI” is not a single method. Each machine learning model is different, with pros and cons, and there is not even hope for creating “the best one” for all data (so-called &lt;a href=&quot;https://en.wikipedia.org/wiki/No_free_lunch_theorem&quot;&gt;no free lunch theorem&lt;/a&gt;).
+Computer cognition is different than our own. And varies from algorithm to algorithm. Querying a relational database with SQL is different than asking Alexa.&lt;/p&gt;
+
+&lt;p&gt;In my opinion, it is useful to compare various approaches, no matter if there are deterministic scripts, statistical models, “shallow” machine learning, or deep learning. All in all, people used the word “AI” for many things (“AI” for opponents in computer games is usually deterministic scripts).&lt;/p&gt;
+
+&lt;p&gt;Even when we look at classic machine learning classifiers, they differ both with their predictions and the way they arrive at such. Let’s see &lt;a href=&quot;https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html&quot;&gt;Scikit-learn classifier comparison&lt;/a&gt;: nearest neighbors, linear support vector machine (SVM), radial-basis function SVM, Gaussian process, a decision tree, Random Forest, etc.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/human-machine-learning/sklearn_classifier_comparison.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Which algorithm is the best?&lt;/li&gt;
+  &lt;li&gt;Which algorithm creates predictions matching your own judgement?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There is a work-in-progress &lt;a href=&quot;https://github.com/stared/which-ml-are-you&quot;&gt;Which Machine Learning algorithm are you?&lt;/a&gt; by Katarzyna Kańska and me. For a longer list of interactive tools, see &lt;a href=&quot;https://p.migdal.pl/interactive-machine-learning-list/&quot;&gt;Interactive Machine Learning, Deep Learning and Statistics websites&lt;/a&gt;. And if you like to draw your own classifiers, see &lt;a href=&quot;https://github.com/stared/livelossplot/blob/master/examples/2d_prediction_maps.ipynb&quot;&gt;this livelossplot Jupyter Notebook&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;even-deep-learning-is-simple&quot;&gt;Even deep learning is simple&lt;/h3&gt;
+
+&lt;p&gt;If you don’t know deep learning yet, it is a bunch of simple mathematics operations (addition, multiplication, maximal value).
+Learning about deep learning made me think that it is not deep learning doing magic… it’s our cognition that is based on heuristics, that are just good enough.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/human-machine-learning/pigeon_classifier_excelnet.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;From flesh to machines: pigeon learn to detect cancer tissue from images (&lt;a href=&quot;https://www.youtube.com/watch?v=flzGjnJLyS0&quot;&gt;video&lt;/a&gt;, &lt;a href=&quot;https://www.sciencemag.org/news/2015/11/pigeons-spot-cancer-well-human-experts&quot;&gt;paper summary&lt;/a&gt;) or &lt;a href=&quot;http://www.deepexcel.net/&quot;&gt;MNIST recognition using spreadsheets&lt;/a&gt;, without any macros.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Don’t take me wrong: mastering deep learning is hard and takes time (as of any specialized activity). But if you want to start playing with that, and you know Python, you can write your first network today, vide:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://p.migdal.pl/2017/04/30/teaching-deep-learning.html&quot;&gt;Learning Deep Learning with Keras&lt;/a&gt; (2017)&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://deepsense.ai/keras-or-pytorch/&quot;&gt;Keras or PyTorch as your first deep learning framework&lt;/a&gt; (2018)&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/stared/thinking-in-tensors-writing-in-pytorch/&quot;&gt;Thinking in Tensors, writing in PyTorch&lt;/a&gt; (work in progress)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If you think that “oh, recognizing images can be done by machines, but feelings, sentience, spirituality, and deep motivations are inherently human”, I recommend reading &lt;a href=&quot;https://en.wikipedia.org/wiki/Consciousness_Explained&quot;&gt;Consciousness Explained&lt;/a&gt; by Daniel Dennett (and in general the philosophy of mind camp). It does the job at de-enchanting consciousness itself.&lt;/p&gt;
+
+&lt;h2 id=&quot;lets-learn-from-mistakes&quot;&gt;Let’s learn from mistakes&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;To err is human… and machine, alike.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;If we get the correct answer to our question, we are happy… but that’s it.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Everyone knows that dragons don’t exist. But while this simplistic formulation may satisfy the layman, it does not suffice for the scientific mind. […] The brilliant Cerebron, attacking the problem analytically, discovered three distinct kinds of dragon: the mythical, the chimerical, and the purely hypothetical. They were all, one might say, nonexistent, but each non-existed in an entirely different way. — &lt;a href=&quot;https://www.goodreads.com/quotes/1132401-everyone-knows-that-dragons-don-t-exist-but-while-this-simplistic&quot;&gt;Stanisław Lem, The Cyberiad&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Usually, we can be right in one way but mistaken in infinitely many ways. And each of these reveals something about the cognitive process. Think about: Freudian slips — “when you say one thing, but mean your mother”. In a similar vein, word vectors can carry connotations, including undesirable ones (vide &lt;a href=&quot;http://blog.conceptnet.io/posts/2017/how-to-make-a-racist-ai-without-really-trying/&quot;&gt;How to make a racist AI without really trying&lt;/a&gt;). I recommend taking the &lt;a href=&quot;https://implicit.harvard.edu/implicit/takeatest.html&quot;&gt;Implicit Bias Test&lt;/a&gt; to see what are your unconscious biases for/against people of a given gender, age or ethnicity.&lt;/p&gt;
+
+&lt;p&gt;People learn a lot about human neuroscience from brain regions being damages, as in the famous book &lt;a href=&quot;https://en.wikipedia.org/wiki/The_Man_Who_Mistook_His_Wife_for_a_Hat&quot;&gt;The Man Who Mistook His Wife for a Hat&lt;/a&gt; by Oliver Sacks. With machine learning models, so far there is no ethics commission forbidding random experiments on them. Thanks to that I run &lt;a href=&quot;https://brainhackwarsaw.github.io/index.html#project4&quot;&gt;Deep Frankenstein: dissecting and sewing artificial neural networks&lt;/a&gt;, at Brainhack (no pun intended!).&lt;/p&gt;
+
+&lt;h2 id=&quot;posts&quot;&gt;Posts&lt;/h2&gt;
+
+&lt;p&gt;So, without further ado, let’s jump to the content:&lt;/p&gt;
+
+&lt;h3 id=&quot;current&quot;&gt;Current&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://p.migdal.pl/2017/01/06/king-man-woman-queen-why.html&quot;&gt;king — man + woman is queen; but why?&lt;/a&gt; — touch the subject of analogies and cognitive metaphors with word embeddings such as word2vec or GloVe&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://medium.com/@marekkcichy/does-ai-have-a-dirty-mind-too-6948430e4b2b&quot;&gt;Does AI have a dirty mind, too?&lt;/a&gt; with &lt;a href=&quot;https://medium.com/u/5bf0995463b&quot;&gt;Marek K. Cichy&lt;/a&gt; — racy adversarial examples, or: seemingly NSFW illusions fooling nude picture detectors&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://medium.com/@pmigdal/dreams-drugs-convnets-ae7ed6ad50a5&quot;&gt;Dreams, Drugs and ConvNets&lt;/a&gt; — seeing patterns, in vivo &amp;amp; in silica; or: artifacts generated by artificial neural networks and by psychedelics&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;intend-to-write&quot;&gt;Intend to write&lt;/h3&gt;
+
+&lt;p&gt;But there are more coming!&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Overfitting — rote learning, superstitions, nipples and conspiracy theories&lt;/li&gt;
+  &lt;li&gt;Scalar fallacy — binary is bad, scalars are not enough&lt;/li&gt;
+  &lt;li&gt;AI is not an Abrahamic God — image classification is a reality, AGI and transhumanism are still sci-fi&lt;/li&gt;
+  &lt;li&gt;Trypophobia — the fear of holes (based on this), based on &lt;a href=&quot;https://github.com/cytadela8/trypophobia&quot;&gt;a project with Grzegorz Uriasz and Artur Puzio&lt;/a&gt; and &lt;a href=&quot;https://github.com/kmichael08/trypophobia-detection&quot;&gt;a subsequent one with Piotr Woźnicki and Michał Kuźba&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;YOLO?! Object (mis)classification and safety&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/imgs/2025/human-machine-learning/pegi.png&quot; alt=&quot;PEGI&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;All in all, &lt;a href=&quot;https://pegi.info/&quot;&gt;Pan European Game Information&lt;/a&gt; is a checklist. We will cover most of the points.&lt;/p&gt;
+
+&lt;h2 id=&quot;thanks&quot;&gt;Thanks&lt;/h2&gt;
+
+&lt;p&gt;I am grateful to &lt;a href=&quot;https://github.com/rafajak&quot;&gt;Rafał Jakubanis&lt;/a&gt; and &lt;a href=&quot;http://github.com/kkanska&quot;&gt;Katarzyna Kańska&lt;/a&gt; for numerous remarks on the draft.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 15 May 2025 00:00:00 -0300</pubDate>
+        <link>/2025/05/15/human-machine-learning/</link>
+        <guid isPermaLink="true">/2025/05/15/human-machine-learning/</guid>
+        
+        <category>deep-learning</category>
+        
+        <category>cognition</category>
+        
+        
+      </item>
+    
+  </channel>
+</rss>
