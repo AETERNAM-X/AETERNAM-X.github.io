@@ -7,14 +7,21 @@
     "lib": "lib"
   },
   "scripts": {
+    "clean": "bundle exec jekyll clean",
     "build:jekyll": "bundle exec jekyll build",
     "optimize:css": "node optimize-css.js",
     "minify:html": "node minify.js",
-    "compress:brotli": "for /R _site %f in (*.html *.css *.js *.xml *.json *.svg) do brotli --force -q 11 -o \"%f.br\" \"%f\"",
-    "build": "npm run build:jekyll && npm run optimize:css && npm run minify:html && npm run compress:brotli",
+    "compress:brotli": "node compress-brotli.js",
+    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run minify:html && npm run compress:brotli",
+    "serve": "bundle exec jekyll serve",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "jekyll",
+    "optimization",
+    "brotli",
+    "performance"
+  ],
   "author": "AETERNAM-X",
   "license": "ISC",
   "dependencies": {
@@ -24,5 +31,8 @@
     "postcss": "^8.5.4",
     "svgo": "^3.3.2",
     "terser": "^5.41.0"
+  },
+  "devDependencies": {
+    
   }
 }
