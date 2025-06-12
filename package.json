@@ -7,13 +7,13 @@
     "lib": "lib"
   },
   "scripts": {
-    "clean": "bundle exec jekyll clean",
-    "build:jekyll": "bundle exec jekyll build",
+    "clean": "bundle exec jekyll clean --config _config.yml",
+    "build:jekyll": "bundle exec jekyll build --config _config.yml --destination _site",
     "optimize:css": "node optimize-css.js",
     "minify:html": "node minify.js",
     "compress:brotli": "node compress-brotli.js",
-    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run minify:html",
-    "serve": "bundle exec jekyll serve",
+    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run minify:html && npm run compress:brotli",
+    "serve": "bundle exec jekyll serve --config _config.yml",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

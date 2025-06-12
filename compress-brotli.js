@@ -3,7 +3,7 @@ const fs = require('fs').promises; // Usar promises para operações de arquivo 
 const path = require('path');
 const brotli = require('brotli-compress'); // Importa a biblioteca brotli-compress
 
-const buildDir = '_site'; // Diretório de saída do Jekyll
+const buildDir = '_site'
 const extensionsToCompress = ['.html', '.css', '.js', '.svg', '.xml', '.txt', '.json'];
 
 // Função para encontrar todos os arquivos no diretório de build
