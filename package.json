@@ -12,14 +12,13 @@
     "optimize:css": "node optimize-css.js",
     "minify:html": "node minify.js",
     "compress:brotli": "node compress-brotli.js",
-    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run minify:html && npm run compress:brotli",
+    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run minify:html",
     "serve": "bundle exec jekyll serve",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "jekyll",
     "optimization",
-    "brotli",
     "performance"
   ],
   "author": "AETERNAM-X",
