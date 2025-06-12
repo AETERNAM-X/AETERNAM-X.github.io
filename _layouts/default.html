@@ -1,20 +1,13 @@
 <!DOCTYPE html>
 <html>
-
 {% include head.html %}
-
 <body {% if page.layout == 'post' %}class="is-post-layout"{% elsif page.layout == 'page' and page.title %}class="{{ page.title | downcase | replace: ' ', '-' }}"{% endif %}>
-
   {% include header.html %}
-
-    <div class="page-content">
+  <div class="page-content">
     <div class="wrapper">
       {{ content }}
     </div>
   </div>
-
   {% include footer.html %}
-
 </body>
-
 </html>

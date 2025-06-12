@@ -5,23 +5,22 @@ permalink: /projects/
 order: 1
 ---
 
-<div class="home">
+<div class="projects-container">
 
   <p>Working here...</p>
 
-  <ul class="event-list">
+  <ul class="project-list">
     {% for project in site.data.projects %}
+     {% if project.title %}
     <li>
       <a href="{{ project.href }}">{{ project.title }}</a>
       <span class="post-meta">
         {{ project.status}}
-        {% if project.hn %}
-        - see <a href="{{ project.hn }}">HN discussion</a>
-        {% endif %}
       </span>
-      </br>
+      <br>
       {{ project.desc }}
     </li>
+     {% endif %}
     {% endfor %}
   </ul>
 

@@ -93,8 +93,6 @@ Good comments do clarify code. [TSDoc](https://github.com/microsoft/tsdoc) is a 
 
 ![](/imgs/2025/article-test/tsdoc1.png)
 
-![](/imgs/2025/article-test/tsdoc2.png)
-
 If we are clueless about what to write in the description, it may be a sign of a more fundamental problem:
 
 > If the implementation is hard to explain, it's a bad idea.
@@ -111,8 +109,6 @@ Additionally, it is possible to create the whole documentations with [TypeDoc](h
 # ESLint
 
 Since the code runs, it is fine, right?
-
-![](/imgs/2025/article-test/letz.png)
 
 Well, unless someone needs to read it. A collaborator, or yourself in 6 months. When the other person needs to develop it (use, expand, or rewrite) — there are so many things that can go wrong, be misunderstood, or take an unproportionate amount of time. When it comes to code, I have a strong belief that:
 

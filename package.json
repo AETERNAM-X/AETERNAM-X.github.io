@@ -1,7 +1,7 @@
 {
   "name": "aeternam-x.github.io-main",
   "version": "1.0.0",
-  "description": "Seu site Jekyll otimizado para performance.",
+  "description": "Optimized Jekyll website.",
   "main": "index.js",
   "directories": {
     "lib": "lib"
@@ -10,7 +10,8 @@
     "build:jekyll": "bundle exec jekyll build",
     "optimize:css": "node optimize-css.js",
     "minify:html": "node minify.js",
-    "build": "npm run build:jekyll && npm run optimize:css && npm run minify:html",
+    "compress:brotli": "for /R _site %f in (*.html *.css *.js *.xml *.json *.svg) do brotli --force -q 11 -o \"%f.br\" \"%f\"",
+    "build": "npm run build:jekyll && npm run optimize:css && npm run minify:html && npm run compress:brotli",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

@@ -5,11 +5,16 @@
 
 // Define external font
 @font-face {
-    font-family: "CPMono_v07";
-    src: url("../font/CPMono_v07_Plain.woff2") format("woff2");
-    font-weight: 400;
-    font-style: normal;
-    font-display: block;
+  font-family: 'CPMono_v07';
+  src: url("/font/CPMono_v07_Plain.woff2")format("woff2");
+  font-weight: 400;
+  font-display: block; 
+  font-optical-sizing: none;
+  font-kerning: none !important;
+  font-stretch: 100% !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: none;
 }
 
 // Our variables
@@ -38,21 +43,20 @@ $on-laptop:        800px;
 
 // Use media queries like this:
 // @include media-query($on-palm) {
-//     .wrapper {
-//         padding-right: $spacing-unit / 2;
-//         padding-left: $spacing-unit / 2;
-//     }
+//   .wrapper {
+//     padding-right: $spacing-unit / 2;
+//     padding-left: $spacing-unit / 2;
+//   }
 // }
 @mixin media-query($device) {
-    @media screen and (max-width: $device) {
-        @content;
-    }
+  @media screen and (max-width: $device) {
+    @content;
+  }
 }
 
 // Import partials from `sass_dir` (defaults to `_sass`)
 @import
-        "base",
-        "layout",
-        "syntax-highlighting"
+  "base",
+  "layout",
+  "syntax-highlighting"
 ;
-
