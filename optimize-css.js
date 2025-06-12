@@ -1,31 +1,44 @@
 // optimize-css.js
-const { transform } = require('lightningcss');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const postcss = require('postcss');
+const cssnano = require('cssnano');
 
-// Lista de arquivos CSS que você quer otimizar com Lightning CSS
-const cssFilesToOptimize = [
-    path.join(__dirname, '_site', 'css', 'main.css'),
-    path.join(__dirname, '_site', 'assets', 'css', 'style.css')
-];
+const buildDir = '_site';
+const cssFiles = [];
 
-cssFilesToOptimize.forEach(filePath => {
-    if (fs.existsSync(filePath)) {
-        const originalCss = fs.readFileSync(filePath, 'utf8');
-
-        try {
-            const { code } = transform({
-                filename: filePath,
-                code: Buffer.from(originalCss),
-                minify: true, // Ativa a minificação
-                // browsers: ['last 2 versions', '> 1%'],
-            });
-            fs.writeFileSync(filePath, code);
-            console.log(`Lightning CSS optimized: ${filePath}`);
-        } catch (e) {
-            console.error(`Error optimizing ${filePath} with Lightning CSS:`, e);
+function findCssFiles(dir) {
+    fs.readdirSync(dir, { withFileTypes: true }).forEach(dirent => {
+        const fullPath = path.join(dir, dirent.name);
+        if (dirent.isDirectory()) {
+            findCssFiles(fullPath);
+        } else if (dirent.isFile() && path.extname(fullPath) === '.css') {
+            cssFiles.push(fullPath);
         }
-    } else {
-        console.warn(`CSS file not found, skipping optimization: ${filePath}`);
+    });
+}
+
+async function optimizeCss() {
+    console.log('Starting CSS optimization with PostCSS and cssnano...');
+    findCssFiles(buildDir);
+
+    if (cssFiles.length === 0) {
+        console.log('No CSS files found to optimize. Skipping CSS optimization.');
+        return;
     }
-});
+
+    for (const filePath of cssFiles) {
+        try {
+            const css = fs.readFileSync(filePath, 'utf8');
+            const result = await postcss([cssnano()]).process(css, { from: filePath, to: filePath });
+            fs.writeFileSync(filePath, result.css);
+            console.log(`Optimized: ${filePath}`);
+        } catch (error) {
+            console.error(`Error optimizing ${filePath}:`, error.message);
+            process.exit(1);
+        }
+    }
+    console.log('CSS optimization complete.');
+}
+
+optimizeCss().catch(console.error);
