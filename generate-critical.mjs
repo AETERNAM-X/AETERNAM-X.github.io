@@ -1,12 +1,14 @@
-import { generate } from 'critical';
+// generate-critical.mjs
+// Mude a importação de 'critters' para 'beasties'
+import Beasties from 'beasties';
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 
 const buildDir = '_site';
 const projectRoot = process.cwd();
 
-async function generateCriticalCssWithNewTool() {
-    console.log('\nStarting Critical CSS generation with "critical" package...');
+async function generateCriticalCssWithBeasties() { // Mude o nome da função para refletir o Beasties
+    console.log('\nStarting Critical CSS generation with "Beasties" package...');
 
     const pagesToProcess = [
         { name: 'index.html', url: 'index.html' },
@@ -14,54 +16,52 @@ async function generateCriticalCssWithNewTool() {
         { name: 'article-test', url: '2025/06/07/article-test/index.html' },
     ];
 
-    const globalCssFilePath = path.join(projectRoot, buildDir, 'assets', 'css', 'style.css');
-    const mainCssFilePath = path.join(projectRoot, buildDir, 'css', 'main.css');
+    const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable';
 
-    try {
-        await readFile(globalCssFilePath, 'utf8');
-        await readFile(mainCssFilePath, 'utf8');
-        console.log('Successfully loaded all combined CSS paths for critical path generation.');
-    } catch (error) {
-        console.error(`Error loading combined CSS: ${error.message}. Critical CSS generation aborted.`);
-        process.exit(1);
-    }
+    const beasties = new Beasties({ // Mude Critters para Beasties aqui
+        path: buildDir,
+        inlineThreshold: 2000,
+        browser: {
+            path: executablePath,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--single-process'
+            ]
+        },
+    });
 
     for (const page of pagesToProcess) {
         const htmlPath = path.join(buildDir, page.url);
         try {
-            console.log(`\nGenerating Critical CSS for: ${page.url}`);
+            console.log(`\nProcessing HTML for: ${page.url}`);
 
             const htmlContentBefore = await readFile(htmlPath, 'utf8');
             const htmlSizeBeforeKb = (Buffer.byteLength(htmlContentBefore, 'utf8') / 1024).toFixed(2);
 
-            const { html, css, uncritical } = await generate({
-                base: buildDir,
-                html: htmlContentBefore,
-                css: [globalCssFilePath, mainCssFilePath],
-                inline: true,
-                extract: false,
-                // --- REMOVA A OPÇÃO 'puppeteer' COMPLETA AQUI ---
-                // Não adicione nenhuma opção 'browser' ou 'puppeteer' diretamente.
-                // Deixe o 'critical' tentar encontrar o navegador sozinho.
-            });
+            const newHtml = await beasties.process(htmlContentBefore); // Mude critters.process para beasties.process
 
-            await writeFile(htmlPath, html);
+            await writeFile(htmlPath, newHtml);
 
-            const htmlSizeAfterKb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(2);
+            const htmlSizeAfterKb = (Buffer.byteLength(newHtml, 'utf8') / 1024).toFixed(2);
 
-            console.log(`  HTML size before "critical": ${htmlSizeBeforeKb} KB`);
-            console.log(`  HTML size after "critical" : ${htmlSizeAfterKb} KB`);
+            console.log(`  HTML size before "Beasties": ${htmlSizeBeforeKb} KB`);
+            console.log(`  HTML size after "Beasties" : ${htmlSizeAfterKb} KB`);
             console.log(`  Difference                 : ${(htmlSizeAfterKb - htmlSizeBeforeKb).toFixed(2)} KB (inlined Critical CSS size)`);
             console.log(`Critical CSS generated and inlined for ${page.url}.`);
 
         } catch (error) {
             console.error(`Error generating Critical CSS for ${page.url}:`, error.message);
+            console.error(error);
         }
     }
-    console.log('\n"critical" Critical CSS generation complete.');
+    console.log('\n"Beasties" Critical CSS generation complete.');
 }
 
-generateCriticalCssWithNewTool().catch(error => {
-    console.error('An unhandled error occurred during "critical" Critical CSS generation:', error);
+generateCriticalCssWithBeasties().catch(error => { // Mude o nome da função aqui também
+    console.error('An unhandled error occurred during "Beasties" Critical CSS generation:', error);
+    console.error(error);
     process.exit(1);
 });
