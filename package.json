@@ -9,11 +9,8 @@
   "scripts": {
     "clean": "bundle exec jekyll clean --config _config.yml",
     "build:jekyll": "bundle exec jekyll build --config _config.yml",
-    "optimize:css": "node optimize-css.js",
-    "minify:html": "node minify.js",
     "minify:js": "node minify-js.js",
-    "critical:css": "node critical-css.mjs",
-    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run critical:css && npm run minify:html && npm run minify:js"
+    "build": "npm run clean && npm run build:jekyll && npm run minify:js"
   },
   "keywords": [
     "jekyll",
