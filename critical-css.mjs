@@ -26,7 +26,7 @@ async function generateCriticalCss() {
 
             console.log(`Generating Critical CSS for: ${page.url}`);
 
-            const { css, html } = await critical.generate({
+            const { css } = await critical.generate({
                 html: htmlContent,
                 base: buildDir,
                 css: [
@@ -39,7 +39,12 @@ async function generateCriticalCss() {
                 ],
                 penthouse: {
                     puppeteer: {
-                        args: chromium.args,
+                        args: [
+                            ...chromium.args,
+                            '--no-sandbox',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage'
+                        ],
                         defaultViewport: chromium.defaultViewport,
                         executablePath: await chromium.executablePath(),
                         headless: chromium.headless,
