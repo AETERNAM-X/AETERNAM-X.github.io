@@ -9,11 +9,12 @@
   "scripts": {
     "clean": "bundle exec jekyll clean --config _config.yml",
     "build:jekyll": "bundle exec jekyll build --config _config.yml",
+    "delete:unwanted-assets": "node -e \"const fs = require('fs'); const path = require('path'); const targetDir = path.join('_site', 'assets'); if (fs.existsSync(targetDir)) { fs.rmSync(targetDir, { recursive: true, force: true }); console.log('Removed directory: ' + targetDir); } else { console.log('Directory not found, skipping: ' + targetDir); }\"",
     "optimize:css": "node optimize-css.js",
     "beasties:css": "node beasties.mjs",
     "minify:html": "node minify.js",
     "minify:js": "node minify-js.js",
-    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run beasties:css && npm run minify:html && npm run minify:js"
+    "build": "npm run clean && npm run build:jekyll && npm run delete:unwanted-assets && npm run optimize:css && npm run beasties:css && npm run minify:html && npm run minify:js"
   },
   "keywords": [
     "jekyll",
@@ -33,7 +34,6 @@
     "svgo": "^3.3.2",
     "terser": "^5.42.0"
   },
-  "dependencies": {},
   "overrides": {
     "beasties": {
       "puppeteer": "npm:puppeteer-core@^24.10.1"

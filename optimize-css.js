@@ -6,7 +6,6 @@ const { transform } = require('lightningcss');
 const { PurgeCSS } = require('purgecss');
 
 const buildDir = '_site';
-const cssSourceDir = path.join(buildDir, 'assets', 'css');
 const cssMainDir = path.join(buildDir, 'css');
 
 async function optimizeCssFiles() {
@@ -14,15 +13,7 @@ async function optimizeCssFiles() {
 
     const filesToProcess = [];
 
-    const styleCssPath = path.join(cssSourceDir, 'style.css');
     const mainCssPath = path.join(cssMainDir, 'main.css');
-
-    try {
-        await fs.access(styleCssPath);
-        filesToProcess.push(styleCssPath);
-    } catch (e) {
-        console.warn(`Warning: ${styleCssPath} not found. Skipping.`);
-    }
 
     try {
         await fs.access(mainCssPath);
