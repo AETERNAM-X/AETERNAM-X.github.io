@@ -1,12 +1,12 @@
 import * as critical from 'critical';
+import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
-import { promises as fs } from 'fs';
-import chromium from '@sparticuz/chromium';
 
 const buildDir = '_site';
+const projectRoot = process.cwd();
 
 async function generateCriticalCss() {
-    console.log('\nStarting Critical CSS generation...');
+    console.log('\nStarting Critical CSS generation with Critical.js...');
 
     const pagesToProcess = [
         {
@@ -19,47 +19,52 @@ async function generateCriticalCss() {
         },
     ];
 
-    for (const page of pagesToProcess) {
-        try {
-            const htmlPath = path.join(buildDir, page.url);
-            let htmlContent = await fs.readFile(htmlPath, 'utf8');
+    // Caminhos absolutos para os arquivos CSS otimizados
+    const styleCssPath = path.join(projectRoot, buildDir, 'assets', 'css', 'style.css');
+    const mainCssPath = path.join(projectRoot, buildDir, 'css', 'main.css');
 
+    for (const page of pagesToProcess) {
+        const htmlPath = path.join(buildDir, page.url);
+
+        try {
             console.log(`Generating Critical CSS for: ${page.url}`);
 
-            const { css } = await critical.generate({
-                html: htmlContent,
-                base: buildDir,
+            // A função critical.generate aceita várias opções.
+            // Aqui, passamos o HTML como string e os caminhos CSS como array.
+            const { css, html } = await critical.generate({
+                html: await readFile(htmlPath, 'utf8'), // Lê o HTML do arquivo
+                // Caminhos CSS que o critical deve analisar. Eles precisam ser absolutos.
+                // O critical é mais flexível e aceita o array de caminhos.
                 css: [
-                    path.join(buildDir, 'assets', 'css', 'style.css'),
-                    path.join(buildDir, 'css', 'main.css')
+                    styleCssPath,
+                    mainCssPath
                 ],
-                dimensions: [
-                    { width: 320, height: 480 },
-                    { width: 1280, height: 800 },
-                ],
-                penthouse: {
-                    puppeteer: {
-                        args: [
-                            ...chromium.args,
-                            '--no-sandbox',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage'
-                        ],
-                        defaultViewport: chromium.defaultViewport,
-                        executablePath: await chromium.executablePath(),
-                        headless: chromium.headless,
-                        ignoreHTTPSErrors: true,
-                    }
-                }
+                // base é o diretório raiz para resolver caminhos relativos no CSS (e.g., url(../images/bg.png))
+                base: path.join(projectRoot, buildDir),
+                inline: true, // Inlina o CSS crítico diretamente no HTML
+                extract: false, // Não extrai o CSS não-crítico para um arquivo separado (mantém nos links)
+                // minify: true, // critical já minifica o CSS crítico por padrão
             });
 
-            const updatedHtml = htmlContent.replace('</head>', `<style>${css}</style>\n</head>`);
-            await fs.writeFile(htmlPath, updatedHtml);
+            // O 'html' retornado por critical.generate já é o HTML com o CSS crítico inlinhado
+            // e as tags <link> originais (possivelmente modificadas/removidas pelo critical).
 
-            console.log(`Critical CSS generated and inlined for ${page.url}.`);
+            let criticalCssSize = 0;
+            // critical.generate já faz o inlining. Podemos verificar o CSS inlinhado no 'html'
+            const styleTagMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/);
+            if (styleTagMatch && styleTagMatch[1]) {
+                criticalCssSize = Buffer.byteLength(styleTagMatch[1], 'utf8');
+            } else {
+                console.log(`[INFO] Nenhuma tag <style> inlinhada encontrada em ${page.url}. (Tamanho 0 bytes)`);
+            }
+
+            await writeFile(htmlPath, html); // Salva o HTML modificado
+
+            console.log(`Critical CSS generated and inlined for ${page.url}. Size: ${criticalCssSize} bytes.`);
 
         } catch (error) {
             console.error(`Error generating Critical CSS for ${page.url}:`, error.message);
+            // Se houver um erro, ainda queremos que o build continue, mas logamos o problema.
         }
     }
     console.log('Critical CSS generation complete.');
