@@ -28,7 +28,6 @@ async function minifyHtmlFiles() {
 
     const htmlnanoOptions = {
         removeComments: true,
-        collapseWhitespace: 'all',
         removeAttributeQuotes: true,
         removeOptionalTags: true,
         removeRedundantAttributes: true,
