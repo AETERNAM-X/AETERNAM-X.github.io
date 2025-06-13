@@ -1,6 +1,7 @@
 import * as critical from 'critical';
 import path from 'path';
 import { promises as fs } from 'fs';
+import chromium from '@sparticuz/chromium';
 
 const buildDir = '_site';
 
@@ -36,6 +37,15 @@ async function generateCriticalCss() {
                     { width: 320, height: 480 },
                     { width: 1280, height: 800 },
                 ],
+                penthouse: {
+                    puppeteer: {
+                        args: chromium.args,
+                        defaultViewport: chromium.defaultViewport,
+                        executablePath: await chromium.executablePath(),
+                        headless: chromium.headless,
+                        ignoreHTTPSErrors: true,
+                    }
+                }
             });
 
             const updatedHtml = htmlContent.replace('</head>', `<style>${css}</style>\n</head>`);

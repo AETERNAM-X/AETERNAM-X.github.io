@@ -23,6 +23,7 @@
   "author": "AETERNAM-X",
   "license": "ISC",
   "devDependencies": {
+    "@sparticuz/chromium": "^133.0.0",
     "critical": "^7.2.1",
     "cssnano": "^7.0.7",
     "htmlnano": "^2.1.2",
