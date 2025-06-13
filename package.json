@@ -8,13 +8,12 @@
   },
   "scripts": {
     "clean": "bundle exec jekyll clean --config _config.yml",
-    "build:jekyll": "bundle exec jekyll build --config _config.yml --destination _site",
+    "build:jekyll": "bundle exec jekyll build --config _config.yml",
     "optimize:css": "node optimize-css.js",
     "minify:html": "node minify.js",
-    "compress:brotli": "node compress-brotli.js",
-    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run minify:html && npm run compress:brotli",
-    "serve": "bundle exec jekyll serve --config _config.yml",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "minify:js": "node minify-js.js",
+    "critical:css": "node critical-css.mjs",
+    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run critical:css && npm run minify:html && npm run minify:js"
   },
   "keywords": [
     "jekyll",
@@ -23,15 +22,14 @@
   ],
   "author": "AETERNAM-X",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
+    "critical": "^7.2.1",
     "cssnano": "^7.0.7",
     "htmlnano": "^2.1.2",
     "lightningcss": "^1.30.1",
-    "postcss": "^8.5.4",
+    "postcss": "^8.5.5",
+    "purgecss": "^7.0.2",
     "svgo": "^3.3.2",
-    "terser": "^5.41.0",
-    "brotli-compress": "^1.3.3"
-  },
-  "devDependencies": {
+    "terser": "^5.42.0"
   }
 }

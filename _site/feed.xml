@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Proxy Codex</title>
+    <description>My Blog.</description>
+    <link>aeternam.pages.dev/</link>
+    <atom:link href="aeternam.pages.dev/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Thu, 12 Jun 2025 22:38:55 -0300</pubDate>
+    <lastBuildDate>Thu, 12 Jun 2025 22:38:55 -0300</lastBuildDate>
+    <generator>Jekyll v3.10.0</generator>
+    
+      <item>
+        <title>Windows WWW</title>
+        <description>&lt;p&gt;&lt;em&gt;On TypeScript, ESlint, jest, TSDoc, Travis-CI, and VSCode (with inspirations from the Zen of Python)&lt;/em&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 07 Jun 2025 00:00:00 -0300</pubDate>
+        <link>aeternam.pages.dev/2025/06/07/article-test/</link>
+        <guid isPermaLink="true">aeternam.pages.dev/2025/06/07/article-test/</guid>
+        
+        <category>tweaking</category>
+        
+        <category>latency</category>
+        
+        <category>windows</category>
+        
+        <category>boost</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Exploring human vs machine learning (one blogpost at a time)</title>
+        <description>&lt;p&gt;The field of Artificial Intelligence started with inspiration, and ambition, to imitate our human cognition. We create things in our image and, well, they make similar mistakes:&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 15 May 2025 00:00:00 -0300</pubDate>
+        <link>aeternam.pages.dev/2025/05/15/human-machine-learning/</link>
+        <guid isPermaLink="true">aeternam.pages.dev/2025/05/15/human-machine-learning/</guid>
+        
+        <category>deep-learning</category>
+        
+        <category>cognition</category>
+        
+        
+      </item>
+    
+  </channel>
+</rss>

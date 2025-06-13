@@ -16,6 +16,17 @@ sass:
   sass_dir: _sass
   style: compressed
 
+exclude:
+  - package.json
+  - package-lock.json
+  - optimize-css.js
+  - minify.js
+  - minify-js.js
+  - critical-css.mjs
+  - node_modules/
+  - Gemfile
+  - Gemfile.lock
+
 # Defaults
 defaults:
   -
