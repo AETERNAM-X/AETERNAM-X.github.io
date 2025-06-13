@@ -7,7 +7,6 @@
     "lib": "lib"
   },
   "scripts": {
-    "prebuild": "sudo apt-get update && sudo apt-get install -y libx11-xcb1 libxcomposite1 libxrandr2 libxtst6 libnss3 libasound2 libgbm-dev",
     "clean": "bundle exec jekyll clean --config _config.yml",
     "build:jekyll": "bundle exec jekyll build --config _config.yml",
     "optimize:css": "node optimize-css.js",
