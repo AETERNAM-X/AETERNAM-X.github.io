@@ -10,7 +10,7 @@ tags:
   - boost
 description: >-
   On TypeScript, ESlint, jest, TSDoc, Travis-CI, and VSCode (with inspirations from the Zen of Python).
-image: /imgs/2025/article-test/jest_test_repl.png
+image: /imgs/2025/article-test/jest_test_repl.avif
 external:
   title: "Windows WWW"
   href: https://medium.com/quantum-photons/how-i-learned-to-stop-worrying-and-love-the-types-tests-b6b5ee5e8ede
@@ -22,7 +22,7 @@ external:
 
 It is fun to write fast without constraints, and run code in a flash. That is why I fell in love with Python and the Jupyter Notebook environment, a great tool for prototyping and interacting with data. However, interactive notebooks fall short when you want to write bigger, maintainable code. See the [What’s wrong with computational notebooks?](http://web.eecs.utk.edu/~azh/blog/notebookpainpoints.html) survey:
 
-![](/imgs/2025/article-test/notebooks-chart.png)
+![](/imgs/2025/article-test/notebooks-chart.avif)
 
 Restructuring and cleaning up code (refactoring) is being listed as one task notebooks are not meant for. For further reading on the pros and cons of notebooks, see [The First Notebook War](https://yihui.org/en/2018/09/notebook-war/).
 
@@ -52,7 +52,7 @@ In this post I will discuss:
 
 Since it is a browser-based game, JavaScript was an obvious choice. We chose [TypeScript](https://www.typescriptlang.org/) (_“JavaScript with types”_) as its dialect, and never looked back. We all used [VSCode](https://code.visualstudio.com/) open-source editor, due to its TypeScript support and rich plugin ecosystem
 
-[![](/imgs/2025/article-test/pmigdal-tweet-typescript.png)](https://twitter.com/pmigdal/status/1179329959598313473)
+[![](/imgs/2025/article-test/pmigdal-tweet-typescript.avif)](https://twitter.com/pmigdal/status/1179329959598313473)
 
 In principle, types are not necessary. All in all, everything in the computer is a long sequence of zeros and ones. But almost always we want to **restrict** what we can do with a particular variable to things that make sense, in the given context. There are exotic cases when we want to treat 0s and 1s of a **float** using operations for an **integer**, vide [fast inverse square root](https://en.wikipedia.org/wiki/Fast_inverse_square_root). But there are rare exceptions that do deserve a few extra lines of switching between types.
 
@@ -64,7 +64,7 @@ And then try to `add(2,2)` and `add('2', 2)`. In both cases, you get a number…
 
 Even in Python, the error happens in the runtime. Why not see it coming while writing code? In TypeScript, with a few keystrokes, we can set:
 
-![](/imgs/2025/article-test/typescript_add.png)
+![](/imgs/2025/article-test/typescript_add.avif)
 
 I found that the overhead to use types in TypeScript is minimal (if any). When writing a new class, method or function, very often it is faster. Sure, I need to specify types of input and output. But then I get speedup due to autocompletion, hints, and linting if for any reason I make a mistake.
 
@@ -91,7 +91,7 @@ Still, for me, TS is a day and night difference with JavaScript.
 
 Good comments do clarify code. [TSDoc](https://github.com/microsoft/tsdoc) is a way of writing TypeScript comments where they’re linked to a particular function, class or method (like[ Python docstrings](https://www.python.org/dev/peps/pep-0257/)).
 
-![](/imgs/2025/article-test/tsdoc1.png)
+![](/imgs/2025/article-test/tsdoc1.avif)
 
 If we are clueless about what to write in the description, it may be a sign of a more fundamental problem:
 
@@ -122,7 +122,7 @@ Well, unless someone needs to read it. A collaborator, or yourself in 6 months. 
 
 The first two are a no-brainer. It may be debatable what is “risky”, but we can customize that if needed.
 
-[![](/imgs/2025/article-test/opressive-silence-if-assignment.jpeg)](http://oppressive-silence.com/comic/oh-no-the-robot)
+[![](/imgs/2025/article-test/opressive-silence-if-assignment.avif)](http://oppressive-silence.com/comic/oh-no-the-robot)
 
 Source: [oppressive-silence.com/comic/oh-no-the-robots](http://oppressive-silence.com/comic/oh-no-the-robots). Using [no-cond-assign](https://eslint.org/docs/rules/no-cond-assign) would have saved their lives. 
 
@@ -140,11 +140,11 @@ Moreover, it makes it much easier to collaborate. No more inconsistencies becaus
 
 Many plugins go with two possible settings: base (only errors) and recommended (enforcing good practices with style). I suggest going by default for the latter. If you need to override an option, it is easy. And IMHO it does not matter nearly as much what style you choose (if you want, go for tabs for indentation — you have my official blessing) as long as it is restrictive and enforced ruthlessly.
 
-![](/imgs/2025/article-test/prettier.png)
+![](/imgs/2025/article-test/prettier.avif)
 
 I do have a love and hate relationship with [Prettier](https://prettier.io/), another a code formatter purely focused on style. In some cases, it makes code, well, prettier and more standardized. However, for many things (say: indentations, trailing characters) Airbnb can do the job. I have also found that a restrictive approach to line width can occasionally produce an inconsistent style (and is pretty vocal about that).
 
-![](/imgs/2025/article-test/prettier_bad.png)
+![](/imgs/2025/article-test/prettier_bad.avif)
 
 ### Further reading
 
@@ -167,11 +167,11 @@ This interactive approach is fine… but manual. You need to do it each time you
 
 Well, with [VSCode plugin for jest](https://github.com/jest-community/vscode-jest) you can do that! Write a new test and the result. If you want to make it REPL-like, instead of writing `console.log(x.toString())` use `expect(x.toString()).toBe('')` and you will directly get the result.
 
-![](/imgs/2025/article-test/jest_test_repl.png)
+![](/imgs/2025/article-test/jest_test_repl.avif)
 
 Then, we can set it as a test. We wrote once but turned into a guardian of our code.
 
-![](/imgs/2025/article-test/jest_test.png)
+![](/imgs/2025/article-test/jest_test.avif)
 
 Tests do not prove that the code works. They safeguard against mistakes, and usually stupid mistakes (e.g. instead of a sorted list in ascending order you get one in descending).
 
@@ -188,7 +188,7 @@ But, if you want to gamify adding tests, there is a way to go!
 
 A typical issue with academic code is that it runs on a single computer, during a full moon. So how about testing it externally, with every single commit?
 
-![[https://travis-ci.com/Quantum-Game/quantum-tensors](https://travis-ci.com/Quantum-Game/quantum-tensors)](/imgs/2025/article-test/travis_ci_checks_pull_request.png)
+![[https://travis-ci.com/Quantum-Game/quantum-tensors](https://travis-ci.com/Quantum-Game/quantum-tensors)](/imgs/2025/article-test/travis_ci_checks_pull_request.avif)
 
 Continuous integration makes it easy to check against cases when the code:
 
@@ -222,7 +222,7 @@ Conversely, if the code works passes, but does not work locally, there is a fair
 
 And the gamification part! Writing tests for all functions is boring… unless I get some score for that, as visible feedback. With [Codecov](https://codecov.io/gh/Quantum-Game/quantum-tensors/) it is easy to make jest & Travis CI generate one more thing:
 
-![[https://codecov.io/gh/Quantum-Game/quantum-tensors/](https://codecov.io/gh/Quantum-Game/quantum-tensors/)](/imgs/2025/article-test/codecov.png)
+![[https://codecov.io/gh/Quantum-Game/quantum-tensors/](https://codecov.io/gh/Quantum-Game/quantum-tensors/)](/imgs/2025/article-test/codecov.avif)
 
 
 ### Further reading:
@@ -234,7 +234,7 @@ And the gamification part! Writing tests for all functions is boring… unless I
 
 Sure, all of it is fun. But: did it help me? For example: believe me or not, but I refactored a piece of tensors numerics in one go, with no errors:
 
-![](/imgs/2025/article-test/typescript_quantum_tensors_refactoring.png)
+![](/imgs/2025/article-test/typescript_quantum_tensors_refactoring.avif)
 
 Thanks to types, and TSDocs, it was possible to see slips while writing.
 Thanks to tests, once rewritten, I was reassured it does the same thing.

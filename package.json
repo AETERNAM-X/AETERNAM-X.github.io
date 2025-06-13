@@ -10,10 +10,10 @@
     "clean": "bundle exec jekyll clean --config _config.yml",
     "build:jekyll": "bundle exec jekyll build --config _config.yml",
     "optimize:css": "node optimize-css.js",
-    "critical:css": "node generate-critical.mjs",
+    "beasties:css": "node beasties.mjs",
     "minify:html": "node minify.js",
     "minify:js": "node minify-js.js",
-    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run critical:css && npm run minify:html && npm run minify:js"
+    "build": "npm run clean && npm run build:jekyll && npm run optimize:css && npm run beasties:css && npm run minify:html && npm run minify:js"
   },
   "keywords": [
     "jekyll",
@@ -24,7 +24,6 @@
   "license": "ISC",
   "devDependencies": {
     "beasties": "^0.3.4",
-    "critical": "^7.2.1",
     "cssnano": "^7.0.7",
     "htmlnano": "^2.1.2",
     "lightningcss": "^1.30.1",
