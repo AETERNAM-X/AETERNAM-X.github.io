@@ -33,5 +33,10 @@
     "purgecss": "^7.0.2",
     "svgo": "^3.3.2",
     "terser": "^5.42.0"
+  },
+  "overrides": {
+    "penthouse": {
+      "puppeteer": "npm:puppeteer-core@^22.15.0"
+    }
   }
 }
