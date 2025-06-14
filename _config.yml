@@ -21,7 +21,6 @@ exclude:
   - package-lock.json
   - optimize-css.js
   - minify.js
-  - minify-js.js
   - beasties.mjs
   - node_modules/
   - Gemfile
