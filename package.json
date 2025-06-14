@@ -2,19 +2,17 @@
   "name": "aeternam-x.github.io-main",
   "version": "1.0.0",
   "description": "Optimized Jekyll website.",
-  "main": "index.js",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
-    "clean": "bundle exec jekyll clean --config _config.yml",
     "build:jekyll": "bundle exec jekyll build --config _config.yml",
     "delete:unwanted-assets": "node -e \"const fs = require('fs'); const path = require('path'); const targetDir = path.join('_site', 'assets'); if (fs.existsSync(targetDir)) { fs.rmSync(targetDir, { recursive: true, force: true }); console.log('Removed directory: ' + targetDir); } else { console.log('Directory not found, skipping: ' + targetDir); }\"",
     "optimize:css": "node optimize-css.js",
     "beasties:css": "node beasties.mjs",
     "minify:html": "node minify.js",
-    "minify:js": "node minify-js.js",
-    "build": "npm run clean && npm run build:jekyll && npm run delete:unwanted-assets && npm run optimize:css && npm run beasties:css && npm run minify:html && npm run minify:js"
+    "brotli:compress": "node brotli.js",
+    "build": "npm run build:jekyll && npm run delete:unwanted-assets && npm run optimize:css && npm run beasties:css && npm run minify:html && npm run brotli:compress"
   },
   "keywords": [
     "jekyll",
@@ -28,7 +26,6 @@
     "cssnano": "^7.0.7",
     "htmlnano": "^2.1.2",
     "lightningcss": "^1.30.1",
-    "postcss": "^8.5.5",
     "puppeteer": "npm:puppeteer-core@^24.10.1",
     "purgecss": "^7.0.2",
     "svgo": "^3.3.2",

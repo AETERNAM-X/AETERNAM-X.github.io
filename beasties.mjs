@@ -1,18 +1,34 @@
 import Beasties from 'beasties';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile, readdir } from 'fs/promises';
 import path from 'path';
 
 const buildDir = '_site';
-const projectRoot = process.cwd();
 
 async function generateCriticalCssWithBeasties() {
     console.log('\nStarting Critical CSS generation with "Beasties" package...');
 
-    const pagesToProcess = [
-        { name: 'index.html', url: 'index.html' },
-        { name: '2025/05/15/human-machine-learning/index.html', url: '2025/05/15/human-machine-learning/index.html' },
-        { name: '2025/06/07/article-test/index.html', url: '2025/06/07/article-test/index.html' },
-    ];
+    const findHtmlFilesRecursive = async (dir) => {
+        let htmlFiles = [];
+        const entries = await readdir(dir, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+                htmlFiles = htmlFiles.concat(await findHtmlFilesRecursive(fullPath));
+            } else if (entry.isFile() && entry.name.endsWith('.html')) {
+                const relativePath = path.relative(buildDir, fullPath);
+                htmlFiles.push({ name: entry.name, url: relativePath.replace(/\\/g, '/') });
+            }
+        }
+        return htmlFiles;
+    };
+
+    const pagesToProcess = await findHtmlFilesRecursive(buildDir);
+
+    if (pagesToProcess.length === 0) {
+        console.log('No HTML files found to process. Skipping Critical CSS generation.');
+        return;
+    }
 
     const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable';
 
@@ -37,8 +53,6 @@ async function generateCriticalCssWithBeasties() {
     await Promise.all(pagesToProcess.map(async (page) => {
         const htmlPath = path.join(buildDir, page.url);
         try {
-            console.log(`\nProcessing HTML for: ${page.url}`);
-
             const htmlContentBefore = await readFile(htmlPath, 'utf8');
             const htmlSizeBeforeKb = (Buffer.byteLength(htmlContentBefore, 'utf8') / 1024).toFixed(2);
 
