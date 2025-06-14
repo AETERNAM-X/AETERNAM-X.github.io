@@ -1,117 +1,116 @@
 const fs = require('fs').promises;
 const path = require('path');
-const dropcss = require('dropcss'); // Importando como função
+const dropcss = require('dropcss');
 const { transform } = require('lightningcss');
 
-const BUILD_DIR = '_site';
-const CSS_PATH = path.join(BUILD_DIR, 'css', 'main.css');
+const dir = '_site';
+const cssFile = path.join(dir, 'css', 'main.css');
 
-function percent(orig, final) {
-  return ((1 - final / orig) * 100).toFixed(2);
-}
+const pct = (a, b) => ((1 - b / a) * 100).toFixed(2);
 
-async function findHtmlFiles(dir) {
-  let htmlFiles = [];
-  const items = await fs.readdir(dir, { withFileTypes: true });
-  for (const item of items) {
-    const fullPath = path.join(dir, item.name);
-    if (item.isDirectory()) {
-      htmlFiles = htmlFiles.concat(await findHtmlFiles(fullPath));
-    } else if (item.isFile() && path.extname(item.name).toLowerCase() === '.html') {
-      htmlFiles.push(fullPath);
+const htmlFiles = async d => {
+  const entries = await fs.readdir(d, { withFileTypes: true });
+  const files = await Promise.all(entries.map(e => {
+    const res = path.join(d, e.name);
+    return e.isDirectory() ? htmlFiles(res) : (e.isFile() && path.extname(e.name).toLowerCase() === '.html' ? res : []);
+  }));
+  return files.flat();
+};
+
+const clean = h => h.replace(/<\?xml[^>]*\?>/g, '').replace(/<svg[\s\S]*?<\/svg>/gi, '');
+
+const run = async () => {
+  let css;
+  try {
+    css = await fs.readFile(cssFile, 'utf8');
+  } catch (e) {
+    console.error(`Error reading original CSS: ${e.message}`);
+    process.exit(1);
+  }
+
+  const orig = Buffer.byteLength(css);
+  console.log(`Original: ${orig} bytes`);
+
+  let htmlList;
+  try {
+    htmlList = await htmlFiles(dir);
+    if (htmlList.length === 0) {
+      console.warn('No HTML files found in build directory. DropCSS might not be effective.');
     }
-  }
-  return htmlFiles;
-}
-
-function cleanHtml(html) {
-  let out = html.replace(/<\?xml[^>]*\?>/g, '');
-  out = out.replace(/<svg[\s\S]*?<\/svg>/gi, '');
-  return out;
-}
-
-async function optimizeCss() {
-  console.log('🚀 Iniciando otimização CSS...');
-
-  let rawCss;
-  try {
-    rawCss = await fs.readFile(CSS_PATH, 'utf8');
-  } catch {
-    console.error('❌ CSS não encontrado:', CSS_PATH);
-    process.exit(1);
-  }
-  const origSize = Buffer.byteLength(rawCss);
-  console.log(`📦 CSS original: ${origSize} bytes`);
-
-  let htmlFiles;
-  try {
-    htmlFiles = await findHtmlFiles(BUILD_DIR);
-  } catch (err) {
-    console.error('❌ Falha ao buscar HTMLs:', err);
+  } catch (e) {
+    console.error(`Error finding HTML files: ${e.message}`);
     process.exit(1);
   }
 
-  let combinedHtml = '';
-  for (const file of htmlFiles) {
+  let html = '';
+  for (const f of htmlList) {
     try {
-      const content = await fs.readFile(file, 'utf8');
-      combinedHtml += cleanHtml(content) + ' ';
-    } catch (err) {
-      console.warn(`⚠ Não leu HTML ${file}:`, err.message);
+      html += clean(await fs.readFile(f, 'utf8')) + ' ';
+    } catch (e) {
+      console.warn(`Warning: Could not read HTML file ${f}: ${e.message}`);
     }
   }
 
-  let purgedCss;
+  if (!html.trim()) {
+    console.warn('Combined HTML is empty or only whitespace. DropCSS might not remove unused CSS.');
+  }
+
+  let purged;
   try {
-    // CORREÇÃO AQUI: Chama dropcss como uma função, não um construtor com .purge()
-    const result = await dropcss({ // <-- Chamada correta do dropcss
-      html: combinedHtml,
-      css: rawCss,
+    const out = await dropcss({
+      html,
+      css,
       onlyUsed: true,
-      minify: false,
-      removeHtml: false,
       removeUnusedKeyframes: true,
       removeUnusedFontFaces: true,
+      minify: false,
+      removeHtml: false,
+      stats: false,
     });
-    purgedCss = result.css;
-  } catch (err) {
-    console.error('🔥 DropCSS falhou:', err);
+    purged = out.css;
+  } catch (e) {
+    console.error(`DropCSS failed: ${e.message}`);
     process.exit(1);
   }
 
-  const purgedSize = Buffer.byteLength(purgedCss);
-  console.log(`🎯 Após DropCSS: ${purgedSize} bytes (${percent(origSize, purgedSize)}% redução)`);
+  const mid = Buffer.byteLength(purged);
+  console.log(`DropCSS: ${mid} bytes (${pct(orig, mid)}% reduction)`);
 
-  let finalCss;
+  let final;
   try {
     const { code } = transform({
       filename: 'main.css',
-      code: Buffer.from(purgedCss, 'utf8'),
+      code: Buffer.from(purged),
       minify: true,
-      drafts: { nesting: true, customMedia: true },
       targets: {
-        chrome: 110000,
-        firefox: 110000,
-        safari: 15000,
-        edge: 110000,
-        ios_saf: 15000,
-        android: 110000,
+        chrome: 120000,
+        firefox: 120000,
+        safari: 170000,
+        edge: 120000,
+        ios_saf: 170000,
+        android: 120000,
       },
+      drafts: {
+        nesting: true,
+        customMedia: true
+      },
+      analyzeDependencies: false,
+      cssModules: false,
     });
-    finalCss = code.toString('utf8');
-  } catch (err) {
-    console.error('🔥 LightningCSS falhou:', err);
+    final = code.toString();
+  } catch (e) {
+    console.error(`LightningCSS failed: ${e.message}`);
     process.exit(1);
   }
 
-  const finalSize = Buffer.byteLength(finalCss);
-  console.log(`⚡ CSS final: ${finalSize} bytes (${percent(origSize, finalSize)}% total)`);
+  const end = Buffer.byteLength(final);
+  console.log(`Final: ${end} bytes (${pct(orig, end)}% total)`);
 
-  await fs.writeFile(CSS_PATH, finalCss);
-  console.log('✅ Otimização concluída!');
-}
+  await fs.writeFile(cssFile, final);
+  console.log('Optimization complete!');
+};
 
-optimizeCss().catch(err => {
-  console.error('🔥 Erro inesperado:', err);
+run().catch(e => {
+  console.error('An unexpected error occurred during CSS optimization:', e);
   process.exit(1);
 });

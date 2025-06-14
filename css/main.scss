@@ -7,8 +7,8 @@
 @font-face {
   font-family: 'CPMono_v07';
   src: url("/font/CPMono_v07_Plain.woff2")format("woff2");
-  font-weight: 400;
-  font-display: block; 
+  font-weight: 400 !important;
+  font-display: swap; 
   font-optical-sizing: none;
   font-kerning: none !important;
   font-stretch: 100% !important;

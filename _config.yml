@@ -22,6 +22,7 @@ exclude:
   - optimize-css.js
   - minify.js
   - beasties.mjs
+  - brotli.js
   - node_modules/
   - Gemfile
   - Gemfile.lock
