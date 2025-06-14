@@ -31,7 +31,6 @@
     "puppeteer": "npm:puppeteer-core@^24.10.1",
     "purgecss": "^7.0.2",
     "svgo": "^3.3.2",
-    "tailwindcss": "^3.4.3",
     "terser": "^5.42.0"
   },
   "overrides": {

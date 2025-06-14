@@ -1,75 +1,116 @@
 const fs = require('fs').promises;
 const path = require('path');
-const { spawn } = require('child_process');
+const dropcss = require('dropcss');
+const { transform } = require('lightningcss');
 
-// Definição de caminhos
 const dir = '_site';
-const cssInput = path.join('tailwind.css'); // Seu arquivo de entrada principal
-const cssOutput = path.join(dir, 'css', 'main.css'); // Onde o CSS final será salvo
+const cssFile = path.join(dir, 'css', 'main.css');
 
-// Função para executar comandos shell
-function runCommand(command, args = []) {
-  return new Promise((resolve, reject) => {
-    // Usamos { shell: true } para que o Windows consiga encontrar npx/tailwindcss
-    const child = spawn(command, args, { shell: true });
+const pct = (a, b) => ((1 - b / a) * 100).toFixed(2);
 
-    let stdout = '';
-    let stderr = '';
+const htmlFiles = async d => {
+  const entries = await fs.readdir(d, { withFileTypes: true });
+  const files = await Promise.all(entries.map(e => {
+    const res = path.join(d, e.name);
+    return e.isDirectory() ? htmlFiles(res) : (e.isFile() && path.extname(e.name).toLowerCase() === '.html' ? res : []);
+  }));
+  return files.flat();
+};
 
-    child.stdout.on('data', (data) => (stdout += data.toString()));
-    child.stderr.on('data', (data) => (stderr += data.toString()));
-
-    child.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(`Command failed with code ${code}\n${stderr}`));
-      } else {
-        resolve(stdout);
-      }
-    });
-
-    child.on('error', (err) => {
-      // Captura erros como "spawn EINVAL" diretamente
-      reject(new Error(`Failed to start command: ${err.message}`));
-    });
-  });
-}
+const clean = h => h.replace(/<\?xml[^>]*\?>/g, '').replace(/<svg[\s\S]*?<\/svg>/gi, '');
 
 const run = async () => {
-  console.log('Starting CSS Optimization with Tailwind CSS...');
-
+  let css;
   try {
-    console.log('Generating and optimizing CSS with Tailwind CLI...');
-    // O Tailwind CLI com --minify e JIT (via tailwind.config.js content)
-    // já é responsável por purgar o CSS não usado e minificar.
-    await runCommand('npx', [
-      'tailwindcss',
-      '-i',
-      cssInput,
-      '-o',
-      cssOutput,
-      '--minify', // Esta flag faz a minificação
-    ]);
-    console.log('Tailwind CSS generated and optimized.');
-  } catch (err) {
-    console.error('Tailwind CLI optimization failed:', err.message);
+    css = await fs.readFile(cssFile, 'utf8');
+  } catch (e) {
+    console.error(`Error reading original CSS: ${e.message}`);
     process.exit(1);
   }
 
-  // Opcional: Adicionar verificação de tamanho final (após o Tailwind)
-  let finalCssContent;
+  const orig = Buffer.byteLength(css);
+  console.log(`Original: ${orig} bytes`);
+
+  let htmlList;
   try {
-    finalCssContent = await fs.readFile(cssOutput, 'utf8');
-    const finalSize = Buffer.byteLength(finalCssContent);
-    console.log(`Final CSS size: ${finalSize} bytes.`);
-  } catch (err) {
-    console.error('Failed to read final CSS for size check:', err.message);
-    // Não encerra o processo, pois o CSS já foi gerado
+    htmlList = await htmlFiles(dir);
+    if (htmlList.length === 0) {
+      console.warn('No HTML files found in build directory. DropCSS might not be effective.');
+    }
+  } catch (e) {
+    console.error(`Error finding HTML files: ${e.message}`);
+    process.exit(1);
   }
 
-  console.log('CSS Optimization complete.');
+  let html = '';
+  for (const f of htmlList) {
+    try {
+      html += clean(await fs.readFile(f, 'utf8')) + ' ';
+    } catch (e) {
+      console.warn(`Warning: Could not read HTML file ${f}: ${e.message}`);
+    }
+  }
+
+  if (!html.trim()) {
+    console.warn('Combined HTML is empty or only whitespace. DropCSS might not remove unused CSS.');
+  }
+
+  let purged;
+  try {
+    const out = await dropcss({
+      html,
+      css,
+      onlyUsed: true,
+      removeUnusedKeyframes: true,
+      removeUnusedFontFaces: true,
+      minify: false,
+      removeHtml: false,
+      stats: false,
+    });
+    purged = out.css;
+  } catch (e) {
+    console.error(`DropCSS failed: ${e.message}`);
+    process.exit(1);
+  }
+
+  const mid = Buffer.byteLength(purged);
+  console.log(`DropCSS: ${mid} bytes (${pct(orig, mid)}% reduction)`);
+
+  let final;
+  try {
+    const { code } = transform({
+      filename: 'main.css',
+      code: Buffer.from(purged),
+      minify: true,
+      targets: {
+        chrome: 120000,
+        firefox: 120000,
+        safari: 170000,
+        edge: 120000,
+        ios_saf: 170000,
+        android: 120000,
+      },
+      drafts: {
+        nesting: true,
+        customMedia: true
+      },
+      analyzeDependencies: false,
+      cssModules: false,
+    });
+    final = code.toString();
+  } catch (e) {
+    console.error(`LightningCSS failed: ${e.message}`);
+    process.exit(1);
+  }
+
+  const end = Buffer.byteLength(final);
+  console.log(`Final: ${end} bytes (${pct(orig, end)}% total)`);
+
+  await fs.writeFile(cssFile, final);
+  console.log('Optimization complete!');
 };
 
-run().catch((err) => {
-  console.error('An unexpected error occurred during CSS optimization:', err.message);
+run().catch(e => {
+  console.error('An unexpected error occurred during CSS optimization:', e);
   process.exit(1);
 });
