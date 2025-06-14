@@ -1,93 +1,117 @@
 const fs = require('fs').promises;
 const path = require('path');
+const dropcss = require('dropcss'); // Importando como função
 const { transform } = require('lightningcss');
-const { PurgeCSS } = require('purgecss');
 
-const buildDir = '_site';
-const cssMainDir = path.join(buildDir, 'css');
-const safelist = {
-  standard: ['active', /^btn-/],
-  deep: [/^dynamic-/],
-  greedy: [/^js-/],
-};
+const BUILD_DIR = '_site';
+const CSS_PATH = path.join(BUILD_DIR, 'css', 'main.css');
 
-function percentReduction(orig, size) {
-  return ((1 - size / orig) * 100).toFixed(2);
+function percent(orig, final) {
+  return ((1 - final / orig) * 100).toFixed(2);
 }
 
-async function optimizeCssFiles() {
-  console.log('Starting CSS optimization with PurgeCSS and Lightning CSS...');
-  const filesToProcess = [];
-  const mainCssPath = path.join(cssMainDir, 'main.css');
-
-  try {
-    await fs.access(mainCssPath);
-    filesToProcess.push(mainCssPath);
-  } catch {
-    console.warn(`Warning: ${mainCssPath} not found. Skipping.`);
-  }
-
-  if (!filesToProcess.length) {
-    console.log('No CSS files found to optimize. Skipping CSS optimization.');
-    return;
-  }
-
-  const purgeCssContent = [`${buildDir}/**/*.html`];
-
-  for (const filePath of filesToProcess) {
-    try {
-      const originalCssContent = await fs.readFile(filePath, 'utf8');
-      const originalSize = Buffer.byteLength(originalCssContent, 'utf8');
-      console.log(`\n--- Processing: ${filePath} ---`);
-      console.log(`Original size: ${originalSize} bytes`);
-
-      const purgeResult = await new PurgeCSS().purge({
-        content: purgeCssContent,
-        css: [{ raw: originalCssContent }],
-        safelist,
-        keyframes: true,
-        fontFace: true,
-        defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || [],
-      });
-
-      const purgedCssContent = purgeResult[0].css;
-      const purgedSize = Buffer.byteLength(purgedCssContent, 'utf8');
-      console.log(`Size after PurgeCSS: ${purgedSize} bytes (${percentReduction(originalSize, purgedSize)}% reduction)`);
-
-      const { code } = transform({
-        filename: path.basename(filePath),
-        code: Buffer.from(purgedCssContent),
-        minify: true,
-        sourceMap: false,
-        targets: {
-          chrome: 110000,
-          firefox: 110000,
-          safari: 15000,
-          edge: 110000,
-          ios_saf: 15000,
-          android: 110000,
-        },
-        drafts: {
-          nesting: true,
-          customMedia: true,
-        }
-      });
-
-      const finalCssCode = code.toString('utf8');
-      const finalSize = Buffer.byteLength(finalCssCode, 'utf8');
-      console.log(`Size after Lightning CSS (final): ${finalSize} bytes (${percentReduction(originalSize, finalSize)}% total reduction)`);
-
-      await fs.writeFile(filePath, finalCssCode);
-      console.log(`Optimized: ${filePath}`);
-    } catch (e) {
-      console.error(`Error optimizing ${filePath}:`, e.message);
-      process.exit(1);
+async function findHtmlFiles(dir) {
+  let htmlFiles = [];
+  const items = await fs.readdir(dir, { withFileTypes: true });
+  for (const item of items) {
+    const fullPath = path.join(dir, item.name);
+    if (item.isDirectory()) {
+      htmlFiles = htmlFiles.concat(await findHtmlFiles(fullPath));
+    } else if (item.isFile() && path.extname(item.name).toLowerCase() === '.html') {
+      htmlFiles.push(fullPath);
     }
   }
-  console.log('\nCSS optimization complete.');
+  return htmlFiles;
 }
 
-optimizeCssFiles().catch(e => {
-  console.error('Unhandled error during CSS optimization:', e);
+function cleanHtml(html) {
+  let out = html.replace(/<\?xml[^>]*\?>/g, '');
+  out = out.replace(/<svg[\s\S]*?<\/svg>/gi, '');
+  return out;
+}
+
+async function optimizeCss() {
+  console.log('🚀 Iniciando otimização CSS...');
+
+  let rawCss;
+  try {
+    rawCss = await fs.readFile(CSS_PATH, 'utf8');
+  } catch {
+    console.error('❌ CSS não encontrado:', CSS_PATH);
+    process.exit(1);
+  }
+  const origSize = Buffer.byteLength(rawCss);
+  console.log(`📦 CSS original: ${origSize} bytes`);
+
+  let htmlFiles;
+  try {
+    htmlFiles = await findHtmlFiles(BUILD_DIR);
+  } catch (err) {
+    console.error('❌ Falha ao buscar HTMLs:', err);
+    process.exit(1);
+  }
+
+  let combinedHtml = '';
+  for (const file of htmlFiles) {
+    try {
+      const content = await fs.readFile(file, 'utf8');
+      combinedHtml += cleanHtml(content) + ' ';
+    } catch (err) {
+      console.warn(`⚠ Não leu HTML ${file}:`, err.message);
+    }
+  }
+
+  let purgedCss;
+  try {
+    // CORREÇÃO AQUI: Chama dropcss como uma função, não um construtor com .purge()
+    const result = await dropcss({ // <-- Chamada correta do dropcss
+      html: combinedHtml,
+      css: rawCss,
+      onlyUsed: true,
+      minify: false,
+      removeHtml: false,
+      removeUnusedKeyframes: true,
+      removeUnusedFontFaces: true,
+    });
+    purgedCss = result.css;
+  } catch (err) {
+    console.error('🔥 DropCSS falhou:', err);
+    process.exit(1);
+  }
+
+  const purgedSize = Buffer.byteLength(purgedCss);
+  console.log(`🎯 Após DropCSS: ${purgedSize} bytes (${percent(origSize, purgedSize)}% redução)`);
+
+  let finalCss;
+  try {
+    const { code } = transform({
+      filename: 'main.css',
+      code: Buffer.from(purgedCss, 'utf8'),
+      minify: true,
+      drafts: { nesting: true, customMedia: true },
+      targets: {
+        chrome: 110000,
+        firefox: 110000,
+        safari: 15000,
+        edge: 110000,
+        ios_saf: 15000,
+        android: 110000,
+      },
+    });
+    finalCss = code.toString('utf8');
+  } catch (err) {
+    console.error('🔥 LightningCSS falhou:', err);
+    process.exit(1);
+  }
+
+  const finalSize = Buffer.byteLength(finalCss);
+  console.log(`⚡ CSS final: ${finalSize} bytes (${percent(origSize, finalSize)}% total)`);
+
+  await fs.writeFile(CSS_PATH, finalCss);
+  console.log('✅ Otimização concluída!');
+}
+
+optimizeCss().catch(err => {
+  console.error('🔥 Erro inesperado:', err);
   process.exit(1);
 });
