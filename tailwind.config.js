@@ -1,10 +1,11 @@
 module.exports = {
   content: [
-    "./_includes/**/*.{html,js}",
-    "./_layouts/**/*.{html,js}",
-    "./_posts/**/*.{md,html}",
-    "./*.html",
-    "./*.md"
+    './_site/**/*.html',
+    './_site/**/*.js',
+    // ou onde seus arquivos que usam classes Tailwind estiverem
   ],
-  // ...
+  theme: {
+    extend: {},
+  },
+  plugins: [],
 }
